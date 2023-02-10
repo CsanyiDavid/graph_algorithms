@@ -18,6 +18,10 @@ public:
 
     ~ListDigraph();
 
+    ListDigraph(const ListDigraph& v) = delete;
+
+    ListDigraph& operator=(const ListDigraph& v) = delete;
+
     Node& add_node();
 
     Arc& add_arc(Node& s, Node& t);
@@ -25,6 +29,8 @@ public:
     int node_count() const {return m_node_ptrs.size();}
 
     int arc_count() const {return m_arc_count;}
+
+    friend std::ostream& operator<<(std::ostream& out, const ListDigraph& g);
 
 private:
     int m_next_node_id;
@@ -39,8 +45,8 @@ private:
     std::list<ListDigraph::Arc*> m_in_arc_ptrs;
     std::list<ListDigraph::Arc*> m_out_arc_ptrs;
 
-    Node(ListDigraph& g)
-        : m_id{g.m_next_node_id++}
+    Node(int id)
+        : m_id{id}
         , m_in_arc_ptrs{}
         , m_out_arc_ptrs{}
     {}
@@ -54,14 +60,16 @@ public:
     int id() const {return m_id;}
 
     friend class ListDigraph;
+
+    friend std::ostream& operator<<(std::ostream& out, const Node& v);
 };
 
 class ListDigraph::NodeIt{
 private:
-    std::list<ListDigraph::Node*>::iterator m_it;
+    std::list<ListDigraph::Node*>::const_iterator m_it;
     const ListDigraph& m_g;
 public:
-    NodeIt(ListDigraph& g)
+    NodeIt(const ListDigraph& g)
         : m_it{g.m_node_ptrs.begin()}
         , m_g{g}
     {}

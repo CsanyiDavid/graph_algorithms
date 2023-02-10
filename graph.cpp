@@ -16,7 +16,8 @@ ListDigraph::~ListDigraph(){
 }
 
 ListDigraph::Node& ListDigraph::add_node(){
-    Node* v_ptr{new Node(*this)};
+    int id = (this->m_next_node_id)++;
+    Node* v_ptr{new Node(id)};
     m_node_ptrs.push_back(v_ptr);
     return *v_ptr;
 };
@@ -28,6 +29,36 @@ ListDigraph::Arc& ListDigraph::add_arc(Node& s, Node& t){
     ++m_arc_count;
     return *e_ptr;
 };
+
+std::ostream& operator<<(std::ostream& out, const ListDigraph& g){
+    out << "ListDigraph(n=" << g.node_count();
+    out << ", m=" << g.arc_count() << ")" << std::endl;
+    out << "Nodes: ";
+    ListDigraph::NodeIt v_it(g);
+    while(v_it.is_valid()){
+        out << *v_it << ' ';
+        ++v_it;
+    }
+    out << std::endl;
+    out << "Out arcs:" << std::endl;
+    ListDigraph::NodeIt v_it2(g);
+    while(v_it2.is_valid()){
+        out << *v_it2 << " -> ";
+        //need and OutArcIterator here
+        out << std::endl;
+        ++v_it2;
+    }
+    return out;
+}
+
+
+//NODE
+
+
+std::ostream& operator<<(std::ostream& out, const ListDigraph::Node& v){
+    out << v.id();
+    return out;
+}
 
 
 //NODEIT

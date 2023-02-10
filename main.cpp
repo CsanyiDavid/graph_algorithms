@@ -20,7 +20,7 @@ int main(){
         ++it;
     }
 
-    //cout << g << endl;
+    cout << g << endl;
 
     return 0;
 }
