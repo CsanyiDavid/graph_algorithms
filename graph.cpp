@@ -1,6 +1,19 @@
 #include "graph.h"
 
+
 //LISTDIGRAPH
+
+ListDigraph::~ListDigraph(){
+    ListDigraph::NodeIt v_it(*this);
+    while(v_it.is_valid()){
+        //TODO: use OutArcIt later here and undo friend
+        for(ListDigraph::Arc* e_ptr : v_it->m_out_arc_ptrs){
+            delete e_ptr;
+        }
+        delete *(v_it.m_it);
+        ++v_it;
+    }
+}
 
 ListDigraph::Node& ListDigraph::add_node(){
     Node* v_ptr{new Node(*this)};
@@ -16,7 +29,9 @@ ListDigraph::Arc& ListDigraph::add_arc(Node& s, Node& t){
     return *e_ptr;
 };
 
+
 //NODEIT
+
 
 ListDigraph::NodeIt& ListDigraph::NodeIt::operator++(){
     if(is_valid()){
@@ -49,5 +64,7 @@ ListDigraph::Node* ListDigraph::NodeIt::operator->(){
     }
 }
 
+
 //ARCIT
+
 
