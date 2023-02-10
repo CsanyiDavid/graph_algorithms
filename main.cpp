@@ -14,7 +14,10 @@ int main(){
     cout << v2.id() << endl;
     cout << g.node_count() << endl << endl;
     
+    g.add_arc(v1, v2);
+
     ListDigraph::NodeIt it(g);
+    ListDigraph::NodeIt it_2 = it;
     while(it.is_valid()){
         cout << it->id() << endl;
         ++it;

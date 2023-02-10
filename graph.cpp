@@ -4,21 +4,21 @@
 //LISTDIGRAPH
 
 ListDigraph::~ListDigraph(){
-    ListDigraph::NodeIt v_it(*this);
-    while(v_it.is_valid()){
+    for(ListDigraph::NodeIt v_it(*this); v_it.is_valid(); ++v_it){
         //TODO: use OutArcIt later here and undo friend
         for(ListDigraph::Arc* e_ptr : v_it->m_out_arc_ptrs){
             delete e_ptr;
         }
-        delete *(v_it.m_it);
-        ++v_it;
+        delete v_it.m_ptr;
     }
 }
 
 ListDigraph::Node& ListDigraph::add_node(){
     int id = (this->m_next_node_id)++;
     Node* v_ptr{new Node(id)};
-    m_node_ptrs.push_back(v_ptr);
+    v_ptr->next = m_first_node_ptr;
+    m_first_node_ptr = v_ptr;
+    ++m_node_count;
     return *v_ptr;
 };
 
@@ -34,19 +34,15 @@ std::ostream& operator<<(std::ostream& out, const ListDigraph& g){
     out << "ListDigraph(n=" << g.node_count();
     out << ", m=" << g.arc_count() << ")" << std::endl;
     out << "Nodes: ";
-    ListDigraph::NodeIt v_it(g);
-    while(v_it.is_valid()){
+    for(ListDigraph::NodeIt v_it(g); v_it.is_valid(); ++v_it){
         out << *v_it << ' ';
-        ++v_it;
     }
     out << std::endl;
     out << "Out arcs:" << std::endl;
-    ListDigraph::NodeIt v_it2(g);
-    while(v_it2.is_valid()){
-        out << *v_it2 << " -> ";
+    for(ListDigraph::NodeIt v_it(g); v_it.is_valid(); ++v_it){
+        out << *v_it << " -> ";
         //need and OutArcIterator here
         out << std::endl;
-        ++v_it2;
     }
     return out;
 }
@@ -66,7 +62,7 @@ std::ostream& operator<<(std::ostream& out, const ListDigraph::Node& v){
 
 ListDigraph::NodeIt& ListDigraph::NodeIt::operator++(){
     if(is_valid()){
-        ++m_it;
+        m_ptr = m_ptr->next;
     }
     return *this;
 }
@@ -81,7 +77,7 @@ ListDigraph::NodeIt ListDigraph::NodeIt::operator++(int){
 
 ListDigraph::Node& ListDigraph::NodeIt::operator*() {
     if(is_valid()){
-        return **m_it;
+        return *m_ptr;
     } else {
         throw "Invalid iterator";
     }
@@ -89,7 +85,7 @@ ListDigraph::Node& ListDigraph::NodeIt::operator*() {
 
 ListDigraph::Node* ListDigraph::NodeIt::operator->(){
     if(is_valid()){
-        return &(**m_it);
+        return m_ptr;
     } else {
         throw "Invalid iterator!";
     }

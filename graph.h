@@ -13,7 +13,9 @@ public:
     ListDigraph()
         : m_next_node_id{0}
         , m_next_arc_id{0}
+        , m_node_count{0}
         , m_arc_count{0}
+        , m_first_node_ptr{NULL}
     {}
 
     ~ListDigraph();
@@ -26,7 +28,7 @@ public:
 
     Arc& add_arc(Node& s, Node& t);
 
-    int node_count() const {return m_node_ptrs.size();}
+    int node_count() const {return m_node_count;}
 
     int arc_count() const {return m_arc_count;}
 
@@ -35,18 +37,23 @@ public:
 private:
     int m_next_node_id;
     int m_next_arc_id;
-    std::list<Node*> m_node_ptrs;
+    int m_node_count;
     int m_arc_count;
+    Node* m_first_node_ptr;
 };
 
 class ListDigraph::Node{
 private:
     int m_id;
+    Node* prev;
+    Node* next;
     std::list<ListDigraph::Arc*> m_in_arc_ptrs;
     std::list<ListDigraph::Arc*> m_out_arc_ptrs;
 
     Node(int id)
         : m_id{id}
+        , prev{NULL}
+        , next{NULL}
         , m_in_arc_ptrs{}
         , m_out_arc_ptrs{}
     {}
@@ -66,13 +73,13 @@ public:
 
 class ListDigraph::NodeIt{
 private:
-    std::list<ListDigraph::Node*>::const_iterator m_it;
-    const ListDigraph& m_g;
+    Node* m_ptr;
 public:
     NodeIt(const ListDigraph& g)
-        : m_it{g.m_node_ptrs.begin()}
-        , m_g{g}
+        : m_ptr{g.m_first_node_ptr}
     {}
+
+    NodeIt(const NodeIt& v_it) = default;
 
     NodeIt& operator++();
 
@@ -82,9 +89,9 @@ public:
 
     Node* operator->();
 
-    NodeIt& operator=(NodeIt& v_it) = delete;
+    NodeIt& operator=(NodeIt& v_it) = default;
 
-    bool is_valid() const {return m_it != m_g.m_node_ptrs.end();}
+    bool is_valid() const {return m_ptr != NULL;}
 
     friend class ListDigraph;
 };
