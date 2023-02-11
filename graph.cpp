@@ -1,3 +1,4 @@
+#include<iostream>
 #include "graph.h"
 
 
@@ -5,9 +6,8 @@
 
 ListDigraph::~ListDigraph(){
     for(ListDigraph::NodeIt v_it(*this); v_it.is_valid(); ++v_it){
-        //TODO: use OutArcIt later here and undo friend
-        for(ListDigraph::Arc* e_ptr : v_it->m_out_arc_ptrs){
-            delete e_ptr;
+        for(ListDigraph::OutArcIt e_it(*v_it); e_it.is_valid(); ++e_it){
+            delete e_it.m_ptr;
         }
         delete v_it.m_ptr;
     }
@@ -16,7 +16,7 @@ ListDigraph::~ListDigraph(){
 ListDigraph::Node& ListDigraph::add_node(){
     int id = (this->m_next_node_id)++;
     Node* v_ptr{new Node(id)};
-    v_ptr->next = m_first_node_ptr;
+    v_ptr->m_next = m_first_node_ptr;
     m_first_node_ptr = v_ptr;
     ++m_node_count;
     return *v_ptr;
@@ -24,8 +24,12 @@ ListDigraph::Node& ListDigraph::add_node(){
 
 ListDigraph::Arc& ListDigraph::add_arc(Node& s, Node& t){
     ListDigraph::Arc* e_ptr{new Arc(s, t)};
-    s.m_out_arc_ptrs.push_back(e_ptr);
-    t.m_in_arc_ptrs.push_back(e_ptr);
+    e_ptr->m_next_out = s.m_first_out_arc_ptr;
+    s.m_first_out_arc_ptr = e_ptr;
+    ++s.out_degree;
+    e_ptr->m_next_in = t.m_first_in_arc_ptr;
+    t.m_first_in_arc_ptr = e_ptr;
+    ++t.in_degree;
     ++m_arc_count;
     return *e_ptr;
 };
@@ -41,7 +45,9 @@ std::ostream& operator<<(std::ostream& out, const ListDigraph& g){
     out << "Out arcs:" << std::endl;
     for(ListDigraph::NodeIt v_it(g); v_it.is_valid(); ++v_it){
         out << *v_it << " -> ";
-        //need and OutArcIterator here
+        for(ListDigraph::OutArcIt e_it(*v_it); e_it.is_valid(); ++e_it){
+            out << e_it->target() << ' ';
+        }
         out << std::endl;
     }
     return out;
@@ -57,12 +63,15 @@ std::ostream& operator<<(std::ostream& out, const ListDigraph::Node& v){
 }
 
 
+//ARC
+
+
 //NODEIT
 
 
 ListDigraph::NodeIt& ListDigraph::NodeIt::operator++(){
     if(is_valid()){
-        m_ptr = m_ptr->next;
+        m_ptr = m_ptr->m_next;
     }
     return *this;
 }
@@ -75,23 +84,40 @@ ListDigraph::NodeIt ListDigraph::NodeIt::operator++(int){
     return temp;
 }
 
-ListDigraph::Node& ListDigraph::NodeIt::operator*() {
+
+//OUTARCIT
+
+
+ListDigraph::OutArcIt& ListDigraph::OutArcIt::operator++(){
     if(is_valid()){
-        return *m_ptr;
-    } else {
-        throw "Invalid iterator";
+        m_ptr = m_ptr->m_next_out;
     }
+    return *this;
 }
 
-ListDigraph::Node* ListDigraph::NodeIt::operator->(){
+ListDigraph::OutArcIt ListDigraph::OutArcIt::operator++(int){
+    OutArcIt temp{*this};
     if(is_valid()){
-        return m_ptr;
-    } else {
-        throw "Invalid iterator!";
+        ++(*this);
     }
+    return temp;
 }
 
 
-//ARCIT
+//INARCIT
 
 
+ListDigraph::InArcIt& ListDigraph::InArcIt::operator++(){
+    if(is_valid()){
+        m_ptr = m_ptr->m_next_in;
+    }
+    return *this;
+}
+
+ListDigraph::InArcIt ListDigraph::InArcIt::operator++(int){
+    InArcIt temp{*this};
+    if(is_valid()){
+        ++(*this);
+    }
+    return temp;
+}
