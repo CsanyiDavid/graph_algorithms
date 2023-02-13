@@ -30,6 +30,8 @@ public:
     friend std::ostream& operator<<(std::ostream& out, Arc e);
 };
 
+class MapBase;
+
 class ListDigraph{
 public:
     template<typename INNER, typename OUTER>
@@ -41,7 +43,10 @@ public:
     friend class ArcIt;
 
     template<typename T>
-    class NodeMap;
+    friend class NodeMap;
+
+    template<typename T>
+    friend class ArcMap;
 
     ListDigraph()
         : m_next_node_id{0}
@@ -50,8 +55,8 @@ public:
         , m_arc_count{0}
         , m_first_node_ptr{NULL}
         , m_first_arc_ptr{NULL}
-        , nodes{0}
-        , arcs{0}
+        , m_nodes{0}
+        , m_arcs{0}
     {}
 
     ~ListDigraph();
@@ -85,8 +90,10 @@ private:
     int m_arc_count;
     InnerNode* m_first_node_ptr;
     InnerArc* m_first_arc_ptr;
-    std::vector<InnerNode*> nodes;
-    std::vector<InnerArc*> arcs;
+    std::vector<InnerNode*> m_nodes;
+    std::vector<InnerArc*> m_arcs;
+    std::vector<MapBase*> m_nodemaps;
+    std::vector<MapBase*> m_arcmaps;
 
     InnerNode& get_inner(Node v);
     InnerArc& get_inner(Arc e);
@@ -95,6 +102,9 @@ private:
 
     Node get_outer(const InnerNode* v) const;
     Arc get_outer(const InnerArc* e) const;
+
+    void resize_nodemaps(int size);
+    void resize_arcmaps(int size);
 };
 
 class ListDigraph::InnerNode{
@@ -278,20 +288,81 @@ public:
     ArcIt operator++(int);
 };
 
-/*template<typename T>
-class ListDigraph::NodeMap{
+class MapBase{
+public:
+    virtual void resize(int size) = 0;
+};
+
+template<typename T>
+class NodeMap : public MapBase{
 private:
-    const ListDigraph& m_g;
+    ListDigraph& m_g;
     std::vector<T> m_map;
 public:
-    NodeMap(const ListDigraph& g)
+    NodeMap(ListDigraph& g)
         : m_g{g}
-        , m_map{g.m_next_node_id-1, 0}
-    {}
-
-    T& operator[](Node& v){
-        return m_map[v.id()];
+        , m_map{static_cast<size_t>(g.m_next_node_id)}
+    {
+        m_g.m_nodemaps.push_back(this);
     }
-};*/
+
+    T& operator[](Node v){
+        if(m_g.is_valid(v)){
+            return m_map[v.id()];
+        } else {
+            throw "Invalid Node!";
+        }
+    }
+
+    const T& operator[](Node v) const {
+        if(m_g.is_valid(v)){
+            return m_map[v.id()];
+        } else {
+            throw "Invalid Node!";
+        }
+    }
+
+    void resize(int size) override {
+        if(size> m_map.size()){
+            m_map.resize(size);
+        }
+    }
+};
+
+template<typename T>
+class ArcMap : public MapBase{
+private:
+    ListDigraph& m_g;
+    std::vector<T> m_map;
+public:
+    ArcMap(ListDigraph& g)
+        : m_g{g}
+        , m_map{g.m_next_node_id}
+    {
+        m_g.m_arcmaps.push_back(this);
+    }
+
+    T& operator[](Arc e){
+        if(m_g.is_valid(e)){
+            return m_map[e.id()];
+        } else {
+            throw "Invalid Node!";
+        }
+    }
+
+    const T& operator[](Arc e) const {
+        if(m_g.is_valid(e)){
+            return m_map[e.id()];
+        } else {
+            throw "Invalid Node!";
+        }
+    }
+
+    void resize(int size) override {
+        if(size> m_map.size()){
+            m_map.resize(size);
+        }
+    }
+};
 
 #endif

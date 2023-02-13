@@ -25,8 +25,9 @@ Node ListDigraph::add_node()
     }
     m_first_node_ptr = v_ptr;
     ++m_node_count;
-    nodes.resize(m_next_node_id);
-    nodes[id] = v_ptr;
+    m_nodes.resize(m_next_node_id);
+    m_nodes[id] = v_ptr;
+    resize_nodemaps(m_next_node_id);
     return Node(id);
 };
 
@@ -57,8 +58,9 @@ Arc ListDigraph::add_arc(Node source, Node target)
     }
     m_first_arc_ptr = e_ptr;
     ++m_arc_count;
-    arcs.resize(m_next_arc_id);
-    arcs[id] = e_ptr;
+    m_arcs.resize(m_next_arc_id);
+    m_arcs[id] = e_ptr;
+    resize_arcmaps(m_next_arc_id);
     return Arc(id);
 };
 
@@ -109,7 +111,7 @@ bool ListDigraph::is_valid(Node v) const {
     if(v.id()<0 or v.id()>=m_next_node_id){
         return false;
     } else {
-        return nodes[v.id()];
+        return m_nodes[v.id()];
     }
 };
 
@@ -117,7 +119,7 @@ bool ListDigraph::is_valid(Arc e) const {
     if(e.id()<0 or e.id()>=m_next_arc_id){
         return false;
     } else {
-        return arcs[e.id()];
+        return m_arcs[e.id()];
     }
 }
 
@@ -155,7 +157,7 @@ int ListDigraph::in_degree(Node v) const {
 
 ListDigraph::InnerNode& ListDigraph::get_inner(Node v){
     if(is_valid(v)){
-        return *nodes[v.id()];
+        return *m_nodes[v.id()];
     } else {
         throw "Invalid node!";
     }
@@ -163,7 +165,7 @@ ListDigraph::InnerNode& ListDigraph::get_inner(Node v){
 
 ListDigraph::InnerArc& ListDigraph::get_inner(Arc e){
     if(is_valid(e)){
-        return *arcs[e.id()];
+        return *m_arcs[e.id()];
     } else {
         throw "Invalid arc";
     }
@@ -171,7 +173,7 @@ ListDigraph::InnerArc& ListDigraph::get_inner(Arc e){
 
 const ListDigraph::InnerNode& ListDigraph::get_inner(Node v) const {
     if(is_valid(v)){
-        return *nodes[v.id()];
+        return *m_nodes[v.id()];
     } else {
         throw "Invalid node!";
     }
@@ -179,7 +181,7 @@ const ListDigraph::InnerNode& ListDigraph::get_inner(Node v) const {
 
 const ListDigraph::InnerArc& ListDigraph::get_inner(Arc e) const {
     if(is_valid(e)){
-        return *arcs[e.id()];
+        return *m_arcs[e.id()];
     } else {
         throw "Invalid arc";
     }
@@ -198,6 +200,18 @@ Arc ListDigraph::get_outer(const InnerArc* e_ptr) const {
         return Arc{e_ptr->id()};
     } else {
         return Arc{-1};
+    }
+}
+
+void ListDigraph::resize_nodemaps(int size){
+    for(int i=0; i<m_nodemaps.size(); ++i){
+        m_nodemaps[i]->resize(size);
+    }
+}
+
+void ListDigraph::resize_arcmaps(int size){
+    for(int i=0; i<m_arcmaps.size(); ++i){
+        m_arcmaps[i]->resize(size);
     }
 }
 
@@ -306,3 +320,4 @@ ArcIt ArcIt::operator++(int)
     }
     return temp;
 }
+
