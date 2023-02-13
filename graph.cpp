@@ -18,7 +18,7 @@ ListDigraph::~ListDigraph()
 Node ListDigraph::add_node()
 {
     int id = (this->m_next_node_id)++;
-    RealNode *v_ptr{new RealNode(id)};
+    InnerNode *v_ptr{new InnerNode(id)};
     v_ptr->m_next = m_first_node_ptr;
     if(m_first_node_ptr){
         m_first_node_ptr->m_prev = v_ptr;
@@ -32,10 +32,13 @@ Node ListDigraph::add_node()
 
 Arc ListDigraph::add_arc(Node source, Node target)
 {
-    RealNode &s{get_inner(source)};
-    RealNode &t{get_inner(target)};
+    if(!is_valid(source) or !is_valid(target)){
+        throw "Incalid node!";
+    }
+    InnerNode &s{get_inner(source)};
+    InnerNode &t{get_inner(target)};
     int id = (this->m_next_arc_id)++;
-    ListDigraph::RealArc *e_ptr{new RealArc(s, t, id)};
+    ListDigraph::InnerArc *e_ptr{new InnerArc(s, t, id)};
     e_ptr->m_next_out = s.m_first_out_arc_ptr;
     if(s.m_first_out_arc_ptr){
         s.m_first_out_arc_ptr->m_prev_out = e_ptr;
@@ -102,6 +105,102 @@ std::ostream &operator<<(std::ostream &out, const ListDigraph &g)
     return out;
 }
 
+bool ListDigraph::is_valid(Node v) const {
+    if(v.id()<0 or v.id()>=m_next_node_id){
+        return false;
+    } else {
+        return nodes[v.id()];
+    }
+};
+
+bool ListDigraph::is_valid(Arc e) const {
+    if(e.id()<0 or e.id()>=m_next_arc_id){
+        return false;
+    } else {
+        return arcs[e.id()];
+    }
+}
+
+Node ListDigraph::source(Arc e) const{
+    if(is_valid(e)){
+        return this->get_outer(&(this->get_inner(e).source()));
+    } else {
+        throw "Invalid Arc!";
+    }
+}
+
+Node ListDigraph::target(Arc e) const{
+    if(is_valid(e)){
+        return this->get_outer(&(this->get_inner(e).target()));
+    } else {
+        throw "Invalid Arc!";
+    }
+}
+
+int ListDigraph::out_degree(Node v) const {
+    if(is_valid(v)){
+        return this->get_inner(v).out_degree();
+    } else{
+        throw "Invalid node!";
+    }
+}
+
+int ListDigraph::in_degree(Node v) const {
+    if(is_valid(v)){
+        return this->get_inner(v).in_degree();
+    } else{
+        throw "Invalid node!";
+    }
+}
+
+ListDigraph::InnerNode& ListDigraph::get_inner(Node v){
+    if(is_valid(v)){
+        return *nodes[v.id()];
+    } else {
+        throw "Invalid node!";
+    }
+}
+
+ListDigraph::InnerArc& ListDigraph::get_inner(Arc e){
+    if(is_valid(e)){
+        return *arcs[e.id()];
+    } else {
+        throw "Invalid arc";
+    }
+}
+
+const ListDigraph::InnerNode& ListDigraph::get_inner(Node v) const {
+    if(is_valid(v)){
+        return *nodes[v.id()];
+    } else {
+        throw "Invalid node!";
+    }
+}
+
+const ListDigraph::InnerArc& ListDigraph::get_inner(Arc e) const {
+    if(is_valid(e)){
+        return *arcs[e.id()];
+    } else {
+        throw "Invalid arc";
+    }
+}
+
+Node ListDigraph::get_outer(const InnerNode* v_ptr) const {
+    if(v_ptr){
+        return Node{v_ptr->id()};
+    } else {
+        return Node{-1};
+    }
+}
+
+Arc ListDigraph::get_outer(const InnerArc* e_ptr) const {
+    if(e_ptr){
+        return Arc{e_ptr->id()};
+    } else {
+        return Arc{-1};
+    }
+}
+
 // NODE
 
 std::ostream &operator<<(std::ostream &out, Node v)
@@ -126,15 +225,8 @@ NodeIt &NodeIt::operator++()
 {
     if (is_valid())
     {
-        ListDigraph::RealNode *v_ptr{m_g.get_inner(m_item).m_next};
-        if (v_ptr)
-        {
-            m_item = Node(v_ptr->id());
-        }
-        else
-        {
-            m_item = Node{-1};
-        }
+        m_ptr = m_ptr->m_next;
+        m_item = m_g.get_outer(m_ptr);
     }
     return *this;
 }
@@ -155,15 +247,8 @@ OutArcIt &OutArcIt::operator++()
 {
     if (is_valid())
     {
-        ListDigraph::RealArc *e_ptr{m_g.get_inner(m_item).m_next_out};
-        if (e_ptr)
-        {
-            m_item = Arc(e_ptr->id());
-        }
-        else
-        {
-            m_item = Arc{-1};
-        }
+        m_ptr = m_ptr->m_next_out;
+        m_item = m_g.get_outer(m_ptr);
     }
     return *this;
 }
@@ -184,15 +269,8 @@ InArcIt &InArcIt::operator++()
 {
     if (is_valid())
     {
-        ListDigraph::RealArc *e_ptr{m_g.get_inner(m_item).m_next_in};
-        if (e_ptr)
-        {
-            m_item = Arc(e_ptr->id());
-        }
-        else
-        {
-            m_item = Arc{-1};
-        }
+        m_ptr = m_ptr->m_next_in;
+        m_item = m_g.get_outer(m_ptr);
     }
     return *this;
 }
@@ -213,15 +291,8 @@ ArcIt &ArcIt::operator++()
 {
     if (is_valid())
     {
-        ListDigraph::RealArc *e_ptr{m_g.get_inner(m_item).m_next};
-        if (e_ptr)
-        {
-            m_item = Arc{e_ptr->id()};
-        }
-        else
-        {
-            m_item = Arc{-1};
-        }
+        m_ptr = m_ptr->m_next;
+        m_item = m_g.get_outer(m_ptr);
     }
     return *this;
 }

@@ -4,8 +4,6 @@
 #include<iostream>
 #include<vector>
 
-class ListDigraph;
-
 class Node{
 private:
     int m_id;
@@ -34,6 +32,9 @@ public:
 
 class ListDigraph{
 public:
+    template<typename INNER, typename OUTER>
+    friend class Iterator;
+
     friend class NodeIt;
     friend class OutArcIt;
     friend class InArcIt;
@@ -56,53 +57,57 @@ public:
     ~ListDigraph();
 
     ListDigraph(const ListDigraph& v) = delete;
-
     ListDigraph& operator=(const ListDigraph& v) = delete;
 
     Node add_node();
-
     Arc add_arc(Node source, Node target);
 
     int node_count() const {return m_node_count;}
-
     int arc_count() const {return m_arc_count;}
 
     friend std::ostream& operator<<(std::ostream& out, const ListDigraph& g);
 
-    //bool is_valid(const Node& v) const {return nodes[v->id()]};
+    bool is_valid(Node v) const;
+    bool is_valid(Arc e) const;
 
-    //bool is_valid(const Arc& e) const {return nodes[e->id()]};
+    Node source(Arc e) const;
+    Node target(Arc e) const;
 
+    int out_degree(Node v) const;
+    int in_degree(Node v) const;
 private:
-    class RealNode;
-    class RealArc;
+    class InnerNode;
+    class InnerArc;
 
     int m_next_node_id;
     int m_next_arc_id;
     int m_node_count;
     int m_arc_count;
-    RealNode* m_first_node_ptr;
-    RealArc* m_first_arc_ptr;
-    std::vector<RealNode*> nodes;
-    std::vector<RealArc*> arcs;
+    InnerNode* m_first_node_ptr;
+    InnerArc* m_first_arc_ptr;
+    std::vector<InnerNode*> nodes;
+    std::vector<InnerArc*> arcs;
 
-    RealNode& get_inner(Node v){return *nodes[v.id()];}
-    RealArc& get_inner(Arc e){return *arcs[e.id()];}
-    const RealNode& get_inner(Node v) const {return *nodes[v.id()];}
-    const RealArc& get_inner(Arc e) const {return *arcs[e.id()];}
+    InnerNode& get_inner(Node v);
+    InnerArc& get_inner(Arc e);
+    const InnerNode& get_inner(Node v) const;
+    const InnerArc& get_inner(Arc e) const;
+
+    Node get_outer(const InnerNode* v) const;
+    Arc get_outer(const InnerArc* e) const;
 };
 
-class ListDigraph::RealNode{
+class ListDigraph::InnerNode{
 private:
     int m_id;
-    RealNode* m_prev;
-    RealNode* m_next;
-    RealArc* m_first_out_arc_ptr;
-    RealArc* m_first_in_arc_ptr;
+    InnerNode* m_prev;
+    InnerNode* m_next;
+    InnerArc* m_first_out_arc_ptr;
+    InnerArc* m_first_in_arc_ptr;
     int m_out_degree;
     int m_in_degree;
 
-    RealNode(int id)
+    InnerNode(int id)
         : m_id{id}
         , m_prev{NULL}
         , m_next{NULL}
@@ -114,9 +119,9 @@ private:
 
 public:
 
-    RealNode(const RealNode& v) = delete;
+    InnerNode(const InnerNode& v) = delete;
 
-    RealNode& operator=(const Node& v) = delete;
+    InnerNode& operator=(const Node& v) = delete;
 
     int id() const {return m_id;}
 
@@ -131,20 +136,20 @@ public:
     friend class ArcIt;
 };
 
-class ListDigraph::RealArc{
+class ListDigraph::InnerArc{
 private:
     int m_id;
-    RealNode& m_source;
-    RealNode& m_target;
+    InnerNode& m_source;
+    InnerNode& m_target;
 
-    RealArc* m_prev_out; //points to the previous arc in m_source's out arc list
-    RealArc* m_next_out; //points to the next arc in m_source's out arc list
-    RealArc* m_prev_in; //points to the previous arc in m_target's in arc list
-    RealArc* m_next_in; //points to the next arc in m_target's in arc list
-    RealArc* m_prev;
-    RealArc* m_next;
+    InnerArc* m_prev_out; //points to the previous arc in m_source's out arc list
+    InnerArc* m_next_out; //points to the next arc in m_source's out arc list
+    InnerArc* m_prev_in; //points to the previous arc in m_target's in arc list
+    InnerArc* m_next_in; //points to the next arc in m_target's in arc list
+    InnerArc* m_prev;
+    InnerArc* m_next;
 
-    RealArc(RealNode& s, RealNode& t, int id)
+    InnerArc(InnerNode& s, InnerNode& t, int id)
         : m_id{id}
         , m_source{s}
         , m_target{t}
@@ -158,17 +163,17 @@ public:
 
     int id() const {return m_id;}
 
-    RealArc(const RealArc& e) = delete;
+    InnerArc(const InnerArc& e) = delete;
 
-    RealArc& operator=(const RealArc& v) = delete;
+    InnerArc& operator=(const InnerArc& v) = delete;
 
-    RealNode& source() {return m_source;}
+    InnerNode& source() {return m_source;}
 
-    RealNode& target() {return m_target;}
+    InnerNode& target() {return m_target;}
 
-    const RealNode& source() const {return m_source;}
+    const InnerNode& source() const {return m_source;}
 
-    const RealNode& target() const {return m_target;}
+    const InnerNode& target() const {return m_target;}
 
     friend class ListDigraph;
     friend class OutArcIt;
@@ -181,14 +186,16 @@ public:
     define constructor and operator++(int) and
     override operator++ for a child class
 */
-template<typename T>
+template<typename INNER, typename OUTER>
 class Iterator{
 protected:
-    T m_item;
+    INNER* m_ptr;
+    OUTER m_item;
     const ListDigraph& m_g;
 public:
-    Iterator(T item, const ListDigraph& g)
-        : m_item{item}
+    Iterator(INNER* ptr, const ListDigraph& g)
+        : m_ptr(ptr)
+        , m_item{g.get_outer(ptr)}
         , m_g{g}
     {}
 
@@ -198,7 +205,7 @@ public:
 
     //virtual Iterator operator++(int) = 0;
 
-    T operator*() const {
+    OUTER& operator*() {
         if(is_valid()){
             return m_item;
         } else {
@@ -206,7 +213,7 @@ public:
         }
     }
 
-    T* operator->(){
+    OUTER* operator->(){
         if(is_valid()){
             return &m_item;
         } else {
@@ -214,7 +221,7 @@ public:
         }
     }
 
-    const T* operator->() const{
+    const OUTER* operator->() const{
         if(is_valid()){
             return &m_item;
         } else {
@@ -224,16 +231,13 @@ public:
 
     Iterator& operator=(Iterator& it) = default;
 
-    bool is_valid() const {return m_item.id()>=0;}
+    bool is_valid() const {return m_ptr;}
 };
 
-class NodeIt : public Iterator<Node>{
+class NodeIt : public Iterator<ListDigraph::InnerNode, Node>{
 public:
     NodeIt(const ListDigraph& g)
-        : Iterator{
-            g.m_first_node_ptr ? Node{g.m_first_node_ptr->id()} : Node{-1}
-            , g
-          }
+        : Iterator{g.m_first_node_ptr, g}
     {}
 
     NodeIt& operator++() override;
@@ -241,13 +245,10 @@ public:
     NodeIt operator++(int);
 };
 
-class OutArcIt : public Iterator<Arc>{
+class OutArcIt : public Iterator<ListDigraph::InnerArc, Arc>{
 public:
     OutArcIt(Node v, const ListDigraph& g)
-        : Iterator{
-            g.get_inner(v).m_first_out_arc_ptr ? Arc{g.get_inner(v).m_first_out_arc_ptr->id()} : Arc{-1}
-            , g
-          }
+        : Iterator{g.get_inner(v).m_first_out_arc_ptr, g}
     {}
 
     OutArcIt& operator++() override;
@@ -255,13 +256,10 @@ public:
     OutArcIt operator++(int);
 };
 
-class InArcIt : public Iterator<Arc>{
+class InArcIt : public Iterator<ListDigraph::InnerArc, Arc>{
 public:
     InArcIt(Node v, const ListDigraph& g)
-        : Iterator{
-            g.get_inner(v).m_first_in_arc_ptr ? Arc(g.get_inner(v).m_first_in_arc_ptr->id()) : Arc{-1}
-            , g
-          }
+        : Iterator{g.get_inner(v).m_first_in_arc_ptr, g}
     {}
 
     InArcIt& operator++() override;
@@ -269,16 +267,10 @@ public:
     InArcIt operator++(int);
 };
 
-class ArcIt : public Iterator<Arc>{
-private:
-    Node m_node;
+class ArcIt : public Iterator<ListDigraph::InnerArc, Arc>{
 public:
     ArcIt(const ListDigraph& g)
-        : m_node{Node(g.m_first_node_ptr->id())}
-        , Iterator{
-            g.m_first_arc_ptr ? Arc(g.m_first_arc_ptr->id()) : Arc{-1}
-            , g
-          }
+        : Iterator{g.m_first_arc_ptr, g}
     {}
 
     ArcIt& operator++() override;

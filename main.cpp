@@ -26,6 +26,9 @@ int main(){
 
     cout << g << endl;
 
-
+    cout << g.is_valid(Node(3));
+    cout << g.is_valid(Node(2));
+    cout << g.is_valid(Node(-1));
+    cout << endl;
     return 0;
 }
