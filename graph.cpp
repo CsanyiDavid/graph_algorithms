@@ -215,6 +215,74 @@ void ListDigraph::resize_arcmaps(int size){
     }
 }
 
+void ListDigraph::erase(Node node){
+    if(is_valid(node)){
+        InnerNode* v_ptr{&get_inner(node)};
+        if(v_ptr->m_next){
+            v_ptr->m_next->m_prev = v_ptr->m_prev;
+        }
+        if(v_ptr->m_prev){
+            v_ptr->m_prev->m_next = v_ptr->m_next;
+        }
+        if(m_first_node_ptr == v_ptr){
+            m_first_node_ptr = v_ptr->m_next;
+        }
+        for(OutArcIt it(node, *this); it.is_valid(); ++it){
+            erase(*it);
+        }
+        for(InArcIt it(node, *this); it.is_valid(); ++it){
+            erase(*it);
+        }
+        delete v_ptr;
+        m_nodes[node.id()] = NULL;
+        --m_node_count;
+    } else {
+        throw "Invalid node!";
+    }
+}
+
+void ListDigraph::erase(Arc arc){
+    if(is_valid(arc)){
+        InnerArc* e_ptr{&get_inner(arc)};
+        InnerNode& s{e_ptr->m_source};
+        InnerNode& t{e_ptr->m_target};
+        --s.m_out_degree;
+        --t.m_in_degree;
+        if(e_ptr->m_prev_out){
+            e_ptr->m_prev_out->m_next_out = e_ptr->m_next_out;
+        }
+        if(e_ptr->m_next_out){
+            e_ptr->m_next_out->m_prev_out = e_ptr->m_prev_out;
+        }
+        if(e_ptr == s.m_first_out_arc_ptr){
+            s.m_first_out_arc_ptr = e_ptr->m_next_out;
+        }
+
+        if(e_ptr->m_prev_in){
+            e_ptr->m_prev_in->m_next_in = e_ptr->m_next_in;
+        }
+        if(e_ptr->m_next_in){
+            e_ptr->m_next_in->m_prev_in = e_ptr->m_prev_in;
+        }
+        if(e_ptr == t.m_first_in_arc_ptr){
+            t.m_first_in_arc_ptr = e_ptr->m_next_in;
+        }
+
+        if(e_ptr->m_prev){
+            e_ptr->m_prev->m_next = e_ptr->m_next;
+        }
+        if(e_ptr->m_next){
+            e_ptr->m_next->m_prev = e_ptr->m_prev;
+        }
+        if(e_ptr == m_first_arc_ptr){
+            m_first_arc_ptr = e_ptr->m_next;
+        }
+        delete e_ptr;
+        m_arcs[arc.id()] = NULL;
+        --m_arc_count;
+    }
+}
+
 // NODE
 
 std::ostream &operator<<(std::ostream &out, Node v)

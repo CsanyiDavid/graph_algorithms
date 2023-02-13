@@ -80,6 +80,9 @@ public:
 
     int out_degree(Node v) const;
     int in_degree(Node v) const;
+
+    void erase(Node node);
+    void erase(Arc arc);
 private:
     class InnerNode;
     class InnerArc;
