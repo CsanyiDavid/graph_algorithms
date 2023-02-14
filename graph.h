@@ -292,8 +292,10 @@ public:
 };
 
 class MapBase{
-public:
+private:
     virtual void resize(int size) = 0;
+
+    friend class ListDigraph;
 };
 
 template<typename T>
@@ -325,6 +327,14 @@ public:
         }
     }
 
+    friend std::ostream& operator<<(std::ostream& out, const NodeMap& nm){
+        out << "NodeMap:" << std::endl;
+        for(NodeIt it(nm.m_g); it.is_valid(); ++it){
+            out << *it << ' ' << nm[*it] << std::endl;
+        }
+        return out;
+    }
+private:
     void resize(int size) override {
         if(size> m_map.size()){
             m_map.resize(size);
@@ -361,6 +371,14 @@ public:
         }
     }
 
+    friend std::ostream& operator<<(std::ostream& out, const ArcMap& am){
+        out << "ArcMap:" << std::endl;
+        for(ArcIt it(am.m_g); it.is_valid(); ++it){
+            out << *it << ' ' << am[*it] << std::endl;
+        }
+        return out;
+    }
+private:
     void resize(int size) override {
         if(size> m_map.size()){
             m_map.resize(size);
