@@ -13,8 +13,6 @@ int main(){
     bfs.run();
     const NodeMap<int> dist_map{bfs.dist_map()};
     cout << dist_map << endl;
-    const NodeMap<int> processed_map{bfs.processed_map()};
-    cout << processed_map << endl;
     const NodeMap<int> reached_map{bfs.reached_map()};
     cout << reached_map << endl;
     const NodeMap<Arc> pred_map{bfs.pred_map()};

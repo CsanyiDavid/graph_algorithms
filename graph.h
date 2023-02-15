@@ -15,6 +15,8 @@ public:
     {}
 
     friend std::ostream& operator<<(std::ostream& out, Node v);
+    friend bool operator==(const Node& v1, const Node& v2) {return v1.id()==v2.id();}
+    friend bool operator!=(const Node& v1, const Node& v2) {return !(v1==v2);}
 };
 
 class Arc{
@@ -28,6 +30,8 @@ public:
     {}
 
     friend std::ostream& operator<<(std::ostream& out, Arc e);
+    friend bool operator==(const Arc& v1, const Arc& v2) {return v1.id()==v2.id();}
+    friend bool operator!=(const Arc& v1, const Arc& v2) {return !(v1==v2);}
 };
 
 class MapBase;
@@ -339,6 +343,12 @@ public:
         }
         return out;
     }
+
+    void reinitialize(T fill_value=T()){
+        for(NodeIt it(m_g); it.is_valid(); ++it){
+            (*this)[*it] = fill_value;
+        }
+    }
 private:
     void resize(int size) override {
         if(size> m_map.size()){
@@ -385,6 +395,13 @@ public:
         }
         return out;
     }
+
+    void reinitialize(T fill_value=T()){
+        for(ArcIt it(m_g); it.is_valid(); ++it){
+            (*this)[*it] = fill_value;
+        }
+    }
+
 private:
     void resize(int size) override {
         if(size> m_map.size()){

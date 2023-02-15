@@ -1,0 +1,4 @@
+iterators should use const graph, but must modify the grap's iterator list
+move more functiuns to MapBase from NodeMap and ArcMap and make MapBase a template class
+swap OutArcIt and InArcIt param order
+make iterator's operator* and operator-> return value const
