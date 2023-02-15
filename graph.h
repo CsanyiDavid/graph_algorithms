@@ -10,7 +10,7 @@ private:
 public:
     int id() const {return m_id;}
 
-    Node(int id)
+    Node(int id=-1)
         : m_id{id}
     {}
 
@@ -23,7 +23,7 @@ private:
 public:
     int id() const {return m_id;}
 
-    Arc(int id)
+    Arc(int id=-1)
         : m_id{id}
     {}
 
@@ -71,7 +71,8 @@ public:
     int arc_count() const {return m_arc_count;}
 
     friend std::ostream& operator<<(std::ostream& out, const ListDigraph& g);
-
+    friend std::istream& operator>>(std::istream& in , ListDigraph& g);
+    
     bool is_valid(Node v) const;
     bool is_valid(Arc e) const;
 
@@ -83,6 +84,8 @@ public:
 
     void erase(Node node);
     void erase(Arc arc);
+    void clear();
+
 private:
     class InnerNode;
     class InnerArc;
@@ -303,10 +306,12 @@ class NodeMap : public MapBase{
 private:
     ListDigraph& m_g;
     std::vector<T> m_map;
+    T m_fill_value;
 public:
-    NodeMap(ListDigraph& g)
+    NodeMap(ListDigraph& g, T fill_value = T())
         : m_g{g}
-        , m_map{static_cast<size_t>(g.m_next_node_id)}
+        , m_map(g.m_next_node_id, fill_value)
+        , m_fill_value{fill_value}
     {
         m_g.m_nodemaps.push_back(this);
     }
@@ -337,7 +342,7 @@ public:
 private:
     void resize(int size) override {
         if(size> m_map.size()){
-            m_map.resize(size);
+            m_map.resize(size, m_fill_value);
         }
     }
 };
@@ -347,10 +352,12 @@ class ArcMap : public MapBase{
 private:
     ListDigraph& m_g;
     std::vector<T> m_map;
+    T m_fill_value;
 public:
-    ArcMap(ListDigraph& g)
+    ArcMap(ListDigraph& g, T fill_value=T())
         : m_g{g}
-        , m_map{g.m_next_node_id}
+        , m_map(g.m_next_node_id, fill_value)
+        , m_fill_value{fill_value}
     {
         m_g.m_arcmaps.push_back(this);
     }
@@ -381,7 +388,7 @@ public:
 private:
     void resize(int size) override {
         if(size> m_map.size()){
-            m_map.resize(size);
+            m_map.resize(size, m_fill_value);
         }
     }
 };

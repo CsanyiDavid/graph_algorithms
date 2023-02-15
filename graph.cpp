@@ -5,14 +5,7 @@
 
 ListDigraph::~ListDigraph()
 {
-    for (NodeIt v_it(*this); v_it.is_valid(); ++v_it)
-    {
-        for (OutArcIt e_it(*v_it, *this); e_it.is_valid(); ++e_it)
-        {
-            delete &get_inner(*e_it);
-        }
-        delete &get_inner(*v_it);
-    }
+    clear();
 }
 
 Node ListDigraph::add_node()
@@ -106,6 +99,21 @@ std::ostream &operator<<(std::ostream &out, const ListDigraph &g)
     }
     return out;
 }
+
+std::istream& operator>>(std::istream& in , ListDigraph& g){
+    g.clear();
+    int n;
+    in >> n;
+    for(int i=0; i<n; ++i){
+        g.add_node();
+    }
+    int u, v;
+    while(in >> u >> v){
+        g.add_arc(Node(u), Node(v));
+    };
+    return in;
+}
+
 
 bool ListDigraph::is_valid(Node v) const {
     if(v.id()<0 or v.id()>=m_next_node_id){
@@ -281,6 +289,24 @@ void ListDigraph::erase(Arc arc){
         m_arcs[arc.id()] = NULL;
         --m_arc_count;
     }
+}
+
+void ListDigraph::clear(){
+    for (NodeIt v_it(*this); v_it.is_valid(); ++v_it){
+        for (OutArcIt e_it(*v_it, *this); e_it.is_valid(); ++e_it)
+        {
+            delete &get_inner(*e_it);
+        }
+        delete &get_inner(*v_it);
+    }
+    m_next_node_id=0;
+    m_next_arc_id=0;
+    m_node_count=0;
+    m_arc_count=0;
+    m_first_node_ptr=NULL;
+    m_first_arc_ptr=NULL;
+    m_nodes.resize(0);
+    m_arcs.resize(0);
 }
 
 // NODE
