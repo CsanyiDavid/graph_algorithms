@@ -10,7 +10,7 @@ BFSIterator& BFSIterator::operator++(){
     if(is_valid()){
         m_current_node = q.front();
         q.pop();
-        for(OutArcIt it(m_current_node, m_g); it.is_valid(); ++it){
+        for(OutArcIt it(m_g, m_current_node); it.is_valid(); ++it){
             Node v{m_g.target(*it)};
             if(!m_reached_map[v]){
                 m_reached_map[v] = true;

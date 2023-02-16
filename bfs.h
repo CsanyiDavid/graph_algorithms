@@ -25,9 +25,9 @@ public:
 
     bool is_valid() const {return !q.empty();};
 
-    Node& operator*() {return m_current_node;}
+    Node operator*() const {return m_current_node;}
 
-    Node* operator->() {return &m_current_node;}
+    const Node* operator->() const {return &m_current_node;}
 
     BFSIterator& operator++();
 

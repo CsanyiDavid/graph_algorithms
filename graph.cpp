@@ -78,7 +78,7 @@ std::ostream &operator<<(std::ostream &out, const ListDigraph &g)
     {
         out << *v_it << "(out_degree=";
         out << g.get_inner(*v_it).out_degree() << ") -> ";
-        for (OutArcIt e_it(*v_it, g); e_it.is_valid(); ++e_it)
+        for (OutArcIt e_it(g, *v_it); e_it.is_valid(); ++e_it)
         {
             out << Node(g.get_inner(*e_it).target().id()) << "(id=";
             out << e_it->id() << "), ";
@@ -90,7 +90,7 @@ std::ostream &operator<<(std::ostream &out, const ListDigraph &g)
     {
         out << *v_it << "(in_degree=";
         out << g.get_inner(*v_it).in_degree() << ") -> ";
-        for (InArcIt e_it(*v_it, g); e_it.is_valid(); ++e_it)
+        for (InArcIt e_it(g, *v_it); e_it.is_valid(); ++e_it)
         {
             out << Node(g.get_inner(*e_it).source().id()) << "(id=";
             out << e_it->id() << "), ";
@@ -235,10 +235,10 @@ void ListDigraph::erase(Node node){
         if(m_first_node_ptr == v_ptr){
             m_first_node_ptr = v_ptr->m_next;
         }
-        for(OutArcIt it(node, *this); it.is_valid(); ++it){
+        for(OutArcIt it(*this, node); it.is_valid(); ++it){
             erase(*it);
         }
-        for(InArcIt it(node, *this); it.is_valid(); ++it){
+        for(InArcIt it(*this, node); it.is_valid(); ++it){
             erase(*it);
         }
         delete v_ptr;
@@ -293,7 +293,7 @@ void ListDigraph::erase(Arc arc){
 
 void ListDigraph::clear(){
     for (NodeIt v_it(*this); v_it.is_valid(); ++v_it){
-        for (OutArcIt e_it(*v_it, *this); e_it.is_valid(); ++e_it)
+        for (OutArcIt e_it(*this, *v_it); e_it.is_valid(); ++e_it)
         {
             delete &get_inner(*e_it);
         }

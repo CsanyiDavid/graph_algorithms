@@ -225,19 +225,11 @@ public:
 
     //virtual Iterator operator++(int) = 0;
 
-    OUTER& operator*() {
+    OUTER operator*() const {
         if(is_valid()){
             return m_item;
         } else {
             throw "Invalid iterator";
-        }
-    }
-
-    OUTER* operator->(){
-        if(is_valid()){
-            return &m_item;
-        } else {
-            throw "Invalid iterator!";
         }
     }
 
@@ -267,7 +259,7 @@ public:
 
 class OutArcIt : public Iterator<ListDigraph::InnerArc, Arc>{
 public:
-    OutArcIt(Node v, const ListDigraph& g)
+    OutArcIt(const ListDigraph& g, Node v)
         : Iterator{g.get_inner(v).m_first_out_arc_ptr, g}
     {}
 
@@ -278,7 +270,7 @@ public:
 
 class InArcIt : public Iterator<ListDigraph::InnerArc, Arc>{
 public:
-    InArcIt(Node v, const ListDigraph& g)
+    InArcIt(const ListDigraph& g, Node v)
         : Iterator{g.get_inner(v).m_first_in_arc_ptr, g}
     {}
 
