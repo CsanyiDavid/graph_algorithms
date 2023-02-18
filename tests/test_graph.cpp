@@ -1,7 +1,8 @@
-#include "graph.h"
+#include "../graph.h"
 #include "test_graph.h"
 #include <iostream>
 #include <cassert>
+#include <fstream>
 
 /*
 Functions to test:
@@ -29,11 +30,8 @@ operator[]
 operator[] const
 */
 
-void run_graph_tests(){
-    test();
-}
 
-bool test(){
+bool test1(){
     ListDigraph g{};
     NodeMap<std::string> nm{g};
     ArcMap<int> am{g};
@@ -79,4 +77,21 @@ bool test(){
     assert(!g.is_valid(nodes[1]));
     assert(g.is_valid(nodes[0]));
     return true;
+}
+
+bool test2(){
+    std::cout << "Test 2" << std::endl;
+    ListDigraph g;
+    std::ifstream GraphFile("input_graph.txt");
+    GraphFile >> g;
+    GraphFile.close(); 
+    std::cout << g << std::endl;
+    g.contract(Arc(13));
+    std::cout << g << std::endl;
+    return true;
+}
+
+void run_graph_tests(){
+    test1();
+    test2();
 }

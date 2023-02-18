@@ -22,7 +22,7 @@ Node ListDigraph::add_node()
     m_nodes[id] = v_ptr;
     resize_nodemaps(m_next_node_id);
     return Node(id);
-};
+}
 
 Arc ListDigraph::add_arc(Node source, Node target)
 {
@@ -309,6 +309,23 @@ void ListDigraph::clear(){
     m_arcs.resize(0);
 }
 
+void ListDigraph::contract(Arc e){
+    Node s = source(e);
+    Node t = target(e);
+    for(OutArcIt it(*this, t); it.is_valid(); ++it){
+        if(target(*it) != s){
+            add_arc(s, target(*it));
+        }   
+    }
+    for(InArcIt it(*this, t); it.is_valid(); ++it){
+        if(source(*it) != s){
+            add_arc(source(*it), s);
+        }
+    }
+    erase(t);
+}
+
+
 // NODE
 
 std::ostream &operator<<(std::ostream &out, Node v)
@@ -392,6 +409,34 @@ InArcIt InArcIt::operator++(int)
     }
     return temp;
 }
+
+// ADJARCIT
+
+AdjArcIt &AdjArcIt::operator++()
+{
+    if (is_valid())
+    {
+        m_ptr = m_ptr->m_next_out;
+        m_item = m_g.get_outer(m_ptr);
+        if(!is_valid() and !m_second_phase){
+            m_second_phase = true;
+            m_ptr = m_g.get_inner(m_v).m_first_in_arc_ptr;
+            m_item = m_g.get_outer(m_ptr);
+        }
+    }
+    return *this;
+}
+
+AdjArcIt AdjArcIt::operator++(int)
+{
+    AdjArcIt temp{*this};
+    if (is_valid())
+    {
+        ++(*this);
+    }
+    return temp;
+}
+
 
 // ARCIT
 
