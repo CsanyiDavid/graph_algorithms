@@ -20,6 +20,7 @@ public:
     friend std::ostream &operator<<(std::ostream &out, Node v);
     friend bool operator==(const Node &v1, const Node &v2) { return v1.id() == v2.id(); }
     friend bool operator!=(const Node &v1, const Node &v2) { return !(v1 == v2); }
+    friend bool operator<(const Node& v1, const Node& v2) {return v1.id()<v2.id();}
 };
 
 class Arc
@@ -40,8 +41,6 @@ public:
     friend bool operator!=(const Arc &v1, const Arc &v2) { return !(v1 == v2); }
 };
 
-class MapBase;
-
 class ListDigraph
 {
 public:
@@ -53,12 +52,6 @@ public:
     friend class InArcIt;
     friend class AdjArcIt;
     friend class ArcIt;
-
-    template <typename T>
-    friend class NodeMap;
-
-    template <typename T>
-    friend class ArcMap;
 
     ListDigraph()
         : m_next_node_id{0}
@@ -81,6 +74,9 @@ public:
 
     int node_count() const { return m_node_count; }
     int arc_count() const { return m_arc_count; }
+
+    int max_node_id() const {return m_next_node_id-1;}
+    int max_arc_id() const {return m_next_arc_id-1;}
 
     friend std::ostream &operator<<(std::ostream &out, const ListDigraph &g);
     friend std::istream &operator>>(std::istream &in, ListDigraph &g);
@@ -112,8 +108,6 @@ protected:
     InnerArc *m_first_arc_ptr;
     std::vector<InnerNode *> m_nodes;
     std::vector<InnerArc *> m_arcs;
-    std::vector<MapBase *> m_nodemaps;
-    std::vector<MapBase *> m_arcmaps;
 
     InnerNode &get_inner(Node v);
     InnerArc &get_inner(Arc e);
@@ -161,8 +155,6 @@ public:
     int in_degree() const { return m_in_degree; }
 
     friend class ListDigraph;
-    friend class ListDigraph;
-    friend class ListGraph;
     friend class NodeIt;
     friend class OutArcIt;
     friend class InArcIt;
@@ -211,8 +203,6 @@ public:
     const InnerNode &target() const { return m_target; }
 
     friend class ListDigraph;
-    friend class ListDigraph;
-    friend class ListGraph;
     friend class OutArcIt;
     friend class InArcIt;
     friend class AdjArcIt;
@@ -345,36 +335,44 @@ public:
     ArcIt operator++(int);
 };
 
+//KEY should be Node or Arc
+template <typename KEY, typename T>
 class MapBase
 {
-private:
-    virtual void resize(int size) = 0;
-
-    friend class ListDigraph;
-};
-
-template <typename T>
-class NodeMap : public MapBase
-{
-private:
-    ListDigraph &m_g;
+protected:
+    const ListDigraph &m_g;
     std::vector<T> m_map;
     T m_fill_value;
 
 public:
-    NodeMap(ListDigraph &g, T fill_value = T())
+    MapBase(const ListDigraph &g, T fill_value = T())
         : m_g{g}
-        , m_map(g.m_next_node_id, fill_value)
         , m_fill_value{fill_value}
+    {}
+
+    T &operator[](KEY k)
     {
-        m_g.m_nodemaps.push_back(this);
+        if (m_g.is_valid(k))
+        {
+            if(k.id()>=m_map.size()){
+                m_map.resize(k.id()+1, m_fill_value);
+            }
+            return m_map[k.id()];
+        }
+        else
+        {
+            throw "Invalid key!";
+        }
     }
 
-    T &operator[](Node v)
+    const T &operator[](KEY k) const
     {
-        if (m_g.is_valid(v))
+        if (m_g.is_valid(k))
         {
-            return m_map[v.id()];
+            if(k.id()>=m_map.size()){
+                return m_fill_value;
+            }
+            return m_map[k.id()];
         }
         else
         {
@@ -382,16 +380,17 @@ public:
         }
     }
 
-    const T &operator[](Node v) const
+    virtual void reinitialize(T fill_value = T()) = 0;
+};
+
+template <typename T>
+class NodeMap : public MapBase<Node, T>
+{
+public:
+    NodeMap(ListDigraph &g, T fill_value = T())
+        : MapBase<Node, T>(g, fill_value)
     {
-        if (m_g.is_valid(v))
-        {
-            return m_map[v.id()];
-        }
-        else
-        {
-            throw "Invalid Node!";
-        }
+        this->m_map.resize(g.max_node_id(), fill_value);
     }
 
     friend std::ostream &operator<<(std::ostream &out, const NodeMap &nm)
@@ -404,62 +403,23 @@ public:
         return out;
     }
 
-    void reinitialize(T fill_value = T())
+    void reinitialize(T fill_value = T()) override
     {
-        for (NodeIt it(m_g); it.is_valid(); ++it)
+        for (NodeIt it(this->m_g); it.is_valid(); ++it)
         {
             (*this)[*it] = fill_value;
-        }
-    }
-
-private:
-    void resize(int size) override
-    {
-        if (size > m_map.size())
-        {
-            m_map.resize(size, m_fill_value);
         }
     }
 };
 
 template <typename T>
-class ArcMap : public MapBase
+class ArcMap : public MapBase<Arc, T>
 {
-private:
-    ListDigraph &m_g;
-    std::vector<T> m_map;
-    T m_fill_value;
-
 public:
     ArcMap(ListDigraph &g, T fill_value = T())
-        : m_g{g}, m_map(g.m_next_node_id, fill_value)
-        , m_fill_value{fill_value}
+        : MapBase<Arc, T>(g, fill_value)
     {
-        m_g.m_arcmaps.push_back(this);
-    }
-
-    T &operator[](Arc e)
-    {
-        if (m_g.is_valid(e))
-        {
-            return m_map[e.id()];
-        }
-        else
-        {
-            throw "Invalid Node!";
-        }
-    }
-
-    const T &operator[](Arc e) const
-    {
-        if (m_g.is_valid(e))
-        {
-            return m_map[e.id()];
-        }
-        else
-        {
-            throw "Invalid Node!";
-        }
+       this->m_map.resize(g.max_arc_id(), fill_value);
     }
 
     friend std::ostream &operator<<(std::ostream &out, const ArcMap &am)
@@ -472,20 +432,11 @@ public:
         return out;
     }
 
-    void reinitialize(T fill_value = T())
+    void reinitialize(T fill_value = T()) override
     {
-        for (ArcIt it(m_g); it.is_valid(); ++it)
+        for (ArcIt it(this->m_g); it.is_valid(); ++it)
         {
             (*this)[*it] = fill_value;
-        }
-    }
-
-private:
-    void resize(int size) override
-    {
-        if (size > m_map.size())
-        {
-            m_map.resize(size, m_fill_value);
         }
     }
 };

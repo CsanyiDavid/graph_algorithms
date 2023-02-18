@@ -20,7 +20,6 @@ Node ListDigraph::add_node()
     ++m_node_count;
     m_nodes.resize(m_next_node_id);
     m_nodes[id] = v_ptr;
-    resize_nodemaps(m_next_node_id);
     return Node(id);
 }
 
@@ -53,7 +52,6 @@ Arc ListDigraph::add_arc(Node source, Node target)
     ++m_arc_count;
     m_arcs.resize(m_next_arc_id);
     m_arcs[id] = e_ptr;
-    resize_arcmaps(m_next_arc_id);
     return Arc(id);
 };
 
@@ -208,18 +206,6 @@ Arc ListDigraph::get_outer(const InnerArc* e_ptr) const {
         return Arc{e_ptr->id()};
     } else {
         return Arc{-1};
-    }
-}
-
-void ListDigraph::resize_nodemaps(int size){
-    for(int i=0; i<m_nodemaps.size(); ++i){
-        m_nodemaps[i]->resize(size);
-    }
-}
-
-void ListDigraph::resize_arcmaps(int size){
-    for(int i=0; i<m_arcmaps.size(); ++i){
-        m_arcmaps[i]->resize(size);
     }
 }
 

@@ -1,2 +1,2 @@
-iterators should use const graph, but must modify the grap's iterator list -> add_map function to ListDigraph
-move more functiuns to MapBase from NodeMap and ArcMap and make MapBase a template class
+graph reader with arcmaps and nodemaps
+tests

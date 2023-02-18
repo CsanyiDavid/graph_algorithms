@@ -40,9 +40,10 @@ class BFS{
 private:
     ListDigraph& m_g;
     Node m_s;
-    NodeMap<int> m_dist_map;
-    NodeMap<int> m_reached_map; //use int instead of bool, because vector<bool> reference doesn't work
-    NodeMap<Arc> m_pred_map;
+    //use int instead of bool, because vector<bool> reference doesn't work
+    NodeMap<int> m_dist_map;    //distance from s
+    NodeMap<int> m_reached_map; 
+    NodeMap<Arc> m_pred_map; //predecessor arc
 
 public:
     BFS(ListDigraph& g, Node s)
