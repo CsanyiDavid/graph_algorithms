@@ -61,8 +61,13 @@ public:
     {}
 
     void insert(KEY k, DATA data){
-        m_key.push_back(k);
-        m_data.push_back(data);
+        if(m_key.size()>m_size){
+            m_key[m_size] = k;
+            m_data[m_size] = data;
+        } else {
+            m_key.push_back(k);
+            m_data.push_back(data);
+        }
         ++m_size;
         m_index_of_data[data] = m_size-1;
         up_heap(m_size-1);
