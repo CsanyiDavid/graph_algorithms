@@ -9,7 +9,7 @@
 using namespace std;
 
 int main(){
-    ListDigraph g;
+    /*ListDigraph g;
     std::ifstream GraphFile("input_graph.txt");
     GraphFile >> g;
     GraphFile.close(); 
@@ -24,5 +24,5 @@ int main(){
     cout << bfs.dist_map() << endl;
 
     cout << d.pred_map() << endl;
-    cout << bfs.pred_map() << endl;
+    cout << bfs.pred_map() << endl;*/
 }
