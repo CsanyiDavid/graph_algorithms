@@ -116,9 +116,6 @@ protected:
 
     Node get_outer(const InnerNode *v) const;
     Arc get_outer(const InnerArc *e) const;
-
-    void resize_nodemaps(int size);
-    void resize_arcmaps(int size);
 };
 
 class ListDigraph::InnerNode
@@ -184,6 +181,8 @@ private:
         , m_next_out{NULL}
         , m_prev_in{NULL}
         , m_next_in{NULL}
+        , m_prev{NULL}
+        , m_next{NULL}
     {
     }
 

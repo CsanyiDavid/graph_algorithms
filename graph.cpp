@@ -52,6 +52,7 @@ Arc ListDigraph::add_arc(Node source, Node target)
     ++m_arc_count;
     m_arcs.resize(m_next_arc_id);
     m_arcs[id] = e_ptr;
+    //std::cout << e_ptr->id() << ' ' << get_outer(e_ptr->m_prev_out) << ' ' << get_outer(e_ptr->m_next_out) << ' ' << get_outer(e_ptr->m_prev_in)<< ' '<< get_outer(e_ptr->m_next_in) << ' ' << get_outer(e_ptr->m_prev) << ' ' << get_outer(e_ptr->m_next) << std::endl;  
     return Arc(id);
 };
 
@@ -242,6 +243,7 @@ void ListDigraph::erase(Arc arc){
         InnerNode& t{e_ptr->m_target};
         --s.m_out_degree;
         --t.m_in_degree;
+        //std::cout << e_ptr->id() << ' ' << get_outer(e_ptr->m_prev_out) << ' ' << get_outer(e_ptr->m_next_out) << ' ' << get_outer(e_ptr->m_prev_in)<< ' '<< get_outer(e_ptr->m_next_in) << ' ' << get_outer(e_ptr->m_prev) << ' ' << get_outer(e_ptr->m_next) << std::endl;  
         if(e_ptr->m_prev_out){
             e_ptr->m_prev_out->m_next_out = e_ptr->m_next_out;
         }
